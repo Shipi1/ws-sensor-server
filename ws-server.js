@@ -36,7 +36,7 @@ function validate(msg) {
 }
 
 wss.on("connection", (ws) => {
-  console.log("Client connected");
+  console.log(`[${new Date().toLocaleString()}] Client connected`);
   clients.add(ws);
 
   ws.on("message", (data) => {
@@ -54,7 +54,7 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    console.log("Received:", JSON.stringify(msg));
+    console.log(`[${new Date().toLocaleString()}] Received:`, JSON.stringify(msg));
     // Broadcast to all other connected clients
     clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -64,7 +64,7 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    console.log("Client disconnected");
+    console.log(`[${new Date().toLocaleString()}] Client disconnected`);
     clients.delete(ws);
   });
 });

@@ -75,3 +75,37 @@ httpsServer.listen(8443, () => {
 
 const plainWss = new WebSocket.Server({ port: 8080 });
 console.log("WebSocket server running on port 8080");
+
+plainWss.on("connection", (ws) => {
+  console.log(`[${new Date().toLocaleString()}] Client connected (port 8080)`);
+  clients.add(ws);
+
+  ws.on("message", (data) => {
+    let msg;
+    try {
+      msg = JSON.parse(data.toString());
+    } catch {
+      ws.send(JSON.stringify({ error: "invalid JSON" }));
+      return;
+    }
+
+    const err = validate(msg);
+    if (err) {
+      ws.send(JSON.stringify({ error: err }));
+      return;
+    }
+
+    console.log(`[${new Date().toLocaleString()}] Received (port 8080):`, JSON.stringify(msg));
+    // Broadcast to all other connected clients
+    clients.forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(msg));
+      }
+    });
+  });
+
+  ws.on("close", () => {
+    console.log(`[${new Date().toLocaleString()}] Client disconnected (port 8080)`);
+    clients.delete(ws);
+  });
+});
